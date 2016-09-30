@@ -158,6 +158,9 @@ public class ParseUtils {
         switch (dataType) {
             case ResValue.ResType.INT_DEC:
                 return ResourceValue.decimal(buffer.getInt());
+            case ResValue.ResType.FLOAT:
+                int rawValue = buffer.getInt();
+                return ResourceValue.floatValue(rawValue, Float.intBitsToFloat(rawValue));
             case ResValue.ResType.INT_HEX:
                 return ResourceValue.hexadecimal(buffer.getInt());
             case ResValue.ResType.STRING:

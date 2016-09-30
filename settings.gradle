@@ -1,0 +1,2 @@
+include ':apk-parser-cli'
+include ':apk-parser-lib'

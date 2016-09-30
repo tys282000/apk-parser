@@ -27,6 +27,10 @@ public abstract class ResourceValue {
         return new DecimalResourceValue(value);
     }
 
+    public static ResourceValue floatValue(int rawValue, float value) {
+        return new FloatResourceValue(rawValue, value);
+    }
+
     public static ResourceValue hexadecimal(int value) {
         return new HexadecimalResourceValue(value);
     }
@@ -73,6 +77,20 @@ public abstract class ResourceValue {
         @Override
         public String toStringValue(ResourceTable resourceTable, Locale locale) {
             return String.valueOf(value);
+        }
+    }
+
+    private static class FloatResourceValue extends ResourceValue {
+        private final float mValue;
+
+        private FloatResourceValue(int rawValue, float value) {
+            super(rawValue);
+            mValue = value;
+        }
+
+        @Override
+        public String toStringValue(ResourceTable resourceTable, Locale locale) {
+            return String.valueOf(mValue);
         }
     }
 
