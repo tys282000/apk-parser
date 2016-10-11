@@ -11,6 +11,8 @@ public class XmlEscaper {
 
     /**
      * <p>Escapes the characters in a {@code String} using XML entities.</p>
+     * @param input
+     * @return
      */
     public static String escapeXml10(final String input) {
         return ESCAPE_XML10.translate(input);

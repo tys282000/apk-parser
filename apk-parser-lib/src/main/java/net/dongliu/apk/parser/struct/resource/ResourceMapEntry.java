@@ -50,9 +50,9 @@ public class ResourceMapEntry extends ResourceEntry {
     /**
      * get value as string
      *
-     * @return
+     * @return value
      */
-    public String toStringValue(ResourceTable resourceTable, Locale locale) {
+    public String toStringValue() {
         if (resourceTableMaps.length > 0) {
             return resourceTableMaps[0].toString();
         } else {

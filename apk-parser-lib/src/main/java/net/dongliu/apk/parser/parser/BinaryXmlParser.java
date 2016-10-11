@@ -125,7 +125,7 @@ public class BinaryXmlParser {
         if (dataRef > 0) {
             xmlCData.setData(stringPool.get(dataRef));
         }
-        xmlCData.setTypedData(ParseUtils.readResValue(buffer, stringPool));
+        xmlCData.setTypedData(ParseUtils.readResValue(buffer, stringPool, resourceTable, locale));
         if (xmlStreamer != null) {
             //TODO: to know more about cdata. some cdata appears buffer xml tags
 //            String value = xmlCData.toStringValue(resourceTable, locale);
@@ -172,7 +172,7 @@ public class BinaryXmlParser {
         for (int count = 0; count < attributeCount; count++) {
             Attribute attribute = readAttribute();
             if (xmlStreamer != null) {
-                String value = attribute.toStringValue(resourceTable, locale);
+                String value = attribute.toStringValue();
                 if (intAttributes.contains(attribute.getName()) && Utils.isNumeric(value)) {
                     try {
                         value = getFinalValueAsString(attribute.getName(), value);
@@ -236,7 +236,7 @@ public class BinaryXmlParser {
         if (rawValueRef > 0) {
             attribute.setRawValue(stringPool.get(rawValueRef));
         }
-        ResourceValue resValue = ParseUtils.readResValue(buffer, stringPool);
+        ResourceValue resValue = ParseUtils.readResValue(buffer, stringPool, resourceTable, locale);
         attribute.setTypedValue(resValue);
 
         return attribute;

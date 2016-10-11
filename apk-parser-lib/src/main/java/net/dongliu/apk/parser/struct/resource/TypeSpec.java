@@ -48,4 +48,20 @@ public class TypeSpec {
                 ", id=" + id +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (object instanceof TypeSpec) {
+            TypeSpec oldTypeSpec = (TypeSpec) object;
+            if (!name.equals(oldTypeSpec.getName())) {
+                return false;
+            }
+            //ignore entry flag here
+            return true;
+        }
+        return false;
+    }
 }

@@ -5,14 +5,26 @@ import net.dongliu.apk.parser.struct.ChunkHeader;
 import net.dongliu.apk.parser.struct.ChunkType;
 import net.dongliu.apk.parser.struct.StringPool;
 import net.dongliu.apk.parser.struct.StringPoolHeader;
-import net.dongliu.apk.parser.struct.resource.*;
+import net.dongliu.apk.parser.struct.resource.LibraryEntry;
+import net.dongliu.apk.parser.struct.resource.LibraryHeader;
+import net.dongliu.apk.parser.struct.resource.PackageHeader;
+import net.dongliu.apk.parser.struct.resource.ResTableConfig;
+import net.dongliu.apk.parser.struct.resource.ResourcePackage;
+import net.dongliu.apk.parser.struct.resource.ResourceTable;
+import net.dongliu.apk.parser.struct.resource.ResourceTableHeader;
+import net.dongliu.apk.parser.struct.resource.Type;
+import net.dongliu.apk.parser.struct.resource.TypeHeader;
+import net.dongliu.apk.parser.struct.resource.TypeSpec;
+import net.dongliu.apk.parser.struct.resource.TypeSpecHeader;
 import net.dongliu.apk.parser.utils.Buffers;
 import net.dongliu.apk.parser.utils.Pair;
 import net.dongliu.apk.parser.utils.ParseUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -29,10 +41,12 @@ public class ResourceTableParser {
      * By default the data buffer Chunks is buffer little-endian byte order both at runtime and when stored buffer files.
      */
     private ByteOrder byteOrder = ByteOrder.LITTLE_ENDIAN;
-    private StringPool stringPool;
-    private ByteBuffer buffer;
+    private StringPool    stringPool;
+    private ByteBuffer    buffer;
     // the resource table file size
     private ResourceTable resourceTable;
+
+    private List<FlagsOffset> mFlagsOffsets;
 
     private Set<Locale> locales;
 
@@ -40,6 +54,20 @@ public class ResourceTableParser {
         this.buffer = buffer.duplicate();
         this.buffer.order(byteOrder);
         this.locales = new HashSet<>();
+        mFlagsOffsets = new ArrayList<>();
+    }
+
+    public void removePublicResources() {
+        byte[] arsc = buffer.array();
+        for (FlagsOffset flags : mFlagsOffsets) {
+
+            int offset = flags.offset + 3;
+            int end = offset + 4 * flags.count;
+            while (offset < end) {
+                arsc[offset] &= (byte) ~0x40;
+                offset += 4;
+            }
+        }
     }
 
     /**
@@ -53,6 +81,7 @@ public class ResourceTableParser {
         stringPool = ParseUtils.readStringPool(buffer, (StringPoolHeader) readChunkHeader());
 
         resourceTable = new ResourceTable();
+        resourceTable.setFileSize(buffer.array().length);
         resourceTable.setStringPool(stringPool);
 
         PackageHeader packageHeader = (PackageHeader) readChunkHeader();
@@ -95,7 +124,12 @@ public class ResourceTableParser {
             switch (chunkHeader.getChunkType()) {
                 case ChunkType.TABLE_TYPE_SPEC:
                     TypeSpecHeader typeSpecHeader = (TypeSpecHeader) chunkHeader;
-                    long[] entryFlags = new long[(int) typeSpecHeader.getEntryCount()];
+                    int entryCount = (int) typeSpecHeader.getEntryCount();
+                    long[] entryFlags = new long[entryCount];
+                    if (mFlagsOffsets != null) {
+                        mFlagsOffsets.add(new FlagsOffset(buffer.position(), entryCount));
+                    }
+
                     for (int i = 0; i < typeSpecHeader.getEntryCount(); i++) {
                         entryFlags[i] = Buffers.readUInt(buffer);
                     }
@@ -129,8 +163,10 @@ public class ResourceTableParser {
                     type.setKeyStringPool(resourcePackage.getKeyStringPool());
                     type.setOffsets(offsets);
                     type.setStringPool(stringPool);
+                    type.setResourceTable(resourceTable);
                     resourcePackage.addType(type);
                     locales.add(type.getLocale());
+                    type.parseAllResourceEntry();
                     buffer.position((int) (chunkBegin + typeHeader.getBodySize()));
                     break;
                 case ChunkType.TABLE_PACKAGE:
@@ -200,7 +236,7 @@ public class ResourceTableParser {
                 buffer.position((int) (begin + headerSize));
                 return typeSpecHeader;
             case ChunkType.TABLE_TYPE:
-                TypeHeader typeHeader = new TypeHeader(chunkType, headerSize, chunkSize);
+                TypeHeader typeHeader = new TypeHeader(chunkType, headerSize, chunkSize, begin);
                 typeHeader.setId(Buffers.readUByte(buffer));
                 typeHeader.setRes0(Buffers.readUByte(buffer));
                 typeHeader.setRes1(Buffers.readUShort(buffer));
@@ -226,14 +262,41 @@ public class ResourceTableParser {
     private ResTableConfig readResTableConfig() {
         long beginPos = buffer.position();
         ResTableConfig config = new ResTableConfig();
-        long size = Buffers.readUInt(buffer);
-        Buffers.skip(buffer, 4);
+        int size = (int) Buffers.readUInt(buffer);
+        config.setSize(size);
+        byte[] configByte = new byte[size];
+        System.arraycopy(buffer.array(), (int) beginPos, configByte, 0, size);
+        config.setArray(configByte);
+
+        if (size < 28) {
+            throw new RuntimeException("Config size < 28");
+        }
+
+        config.setMcc(buffer.getShort());
+        config.setMnc(buffer.getShort());
+
         //read locale
         config.setLanguage(new String(Buffers.readBytes(buffer, 2)).replace("\0", ""));
         config.setCountry(new String(Buffers.readBytes(buffer, 2)).replace("\0", ""));
 
+        config.setOrientation(buffer.get());
+        config.setTouchscreen(buffer.get());
+        config.setDensity(Buffers.readUShort(buffer));
+
+        config.setKeyboard(buffer.get());
+        config.setNavigation(buffer.get());
+        config.setInputFlags(buffer.get());
+        config.setInputPad0(buffer.get());
+
+        config.setScreenWidth(buffer.getShort());
+        config.setScreenHeight(buffer.getShort());
+
+        config.setSdkVersion(buffer.getShort());
+        config.setMinorVersion(buffer.getShort());
+
         long endPos = buffer.position();
         Buffers.skip(buffer, (int) (size - (endPos - beginPos)));
+
         return config;
     }
 
@@ -243,5 +306,15 @@ public class ResourceTableParser {
 
     public Set<Locale> getLocales() {
         return this.locales;
+    }
+
+    public static class FlagsOffset {
+        public final int offset;
+        public final int count;
+
+        public FlagsOffset(int offset, int count) {
+            this.offset = offset;
+            this.count = count;
+        }
     }
 }

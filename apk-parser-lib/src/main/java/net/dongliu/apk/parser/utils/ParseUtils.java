@@ -149,46 +149,66 @@ public class ParseUtils {
      * read res value, convert from different types to string.
      */
     @Nullable
-    public static ResourceValue readResValue(ByteBuffer buffer, StringPool stringPool) {
-//        ResValue resValue = new ResValue();
+    public static ResourceValue readResValue(ByteBuffer buffer, StringPool stringPool, ResourceTable resourceTable, Locale locale) {
+        ResourceValue resValue;
         int size = Buffers.readUShort(buffer);
         short res0 = Buffers.readUByte(buffer);
         short dataType = Buffers.readUByte(buffer);
 
         switch (dataType) {
             case ResValue.ResType.INT_DEC:
-                return ResourceValue.decimal(buffer.getInt());
+                resValue = ResourceValue.decimal(buffer.getInt());
+                break;
             case ResValue.ResType.FLOAT:
                 int rawValue = buffer.getInt();
-                return ResourceValue.floatValue(rawValue, Float.intBitsToFloat(rawValue));
+                resValue = ResourceValue.floatValue(rawValue, Float.intBitsToFloat(rawValue));
+                break;
+            case ResValue.ResType.ATTRIBUTE:
+                resValue = ResourceValue.reference(buffer.getInt(), resourceTable, locale);
+                break;
             case ResValue.ResType.INT_HEX:
-                return ResourceValue.hexadecimal(buffer.getInt());
+                resValue = ResourceValue.hexadecimal(buffer.getInt());
+                break;
             case ResValue.ResType.STRING:
                 int strRef = buffer.getInt();
                 if (strRef >= 0) {
-                    return ResourceValue.string(strRef, stringPool);
+                    resValue = ResourceValue.string(strRef, stringPool);
                 } else {
-                    return null;
+                    resValue = null;
                 }
+                break;
             case ResValue.ResType.REFERENCE:
-                return ResourceValue.reference(buffer.getInt());
+                resValue = ResourceValue.reference(buffer.getInt(), resourceTable, locale);
+                break;
             case ResValue.ResType.INT_BOOLEAN:
-                return ResourceValue.bool(buffer.getInt());
+                resValue = ResourceValue.bool(buffer.getInt());
+                break;
             case ResValue.ResType.NULL:
-                return ResourceValue.nullValue();
+                resValue = ResourceValue.nullValue();
+                break;
             case ResValue.ResType.INT_COLOR_RGB8:
             case ResValue.ResType.INT_COLOR_RGB4:
-                return ResourceValue.rgb(buffer.getInt(), 6);
+                resValue = ResourceValue.rgb(buffer.getInt(), 6);
+                break;
             case ResValue.ResType.INT_COLOR_ARGB8:
             case ResValue.ResType.INT_COLOR_ARGB4:
-                return ResourceValue.rgb(buffer.getInt(), 8);
+                resValue = ResourceValue.rgb(buffer.getInt(), 8);
+                break;
             case ResValue.ResType.DIMENSION:
-                return ResourceValue.dimension(buffer.getInt());
+                resValue = ResourceValue.dimension(buffer.getInt());
+                break;
             case ResValue.ResType.FRACTION:
-                return ResourceValue.fraction(buffer.getInt());
+                resValue = ResourceValue.fraction(buffer.getInt());
+                break;
             default:
-                return ResourceValue.raw(buffer.getInt(), dataType);
+                resValue = ResourceValue.raw(buffer.getInt(), dataType);
+                break;
         }
+        if (resValue != null) {
+            resValue.setDataType(dataType);
+            resValue.setSize(size);
+        }
+        return resValue;
     }
 
     public static void checkChunkType(int expected, int real) {
@@ -211,7 +231,6 @@ public class ParseUtils {
         if (resourceId > AndroidConstants.SYS_STYLE_ID_START && resourceId < AndroidConstants.SYS_STYLE_ID_END) {
             return "@android:style/" + ResourceTable.sysStyle.get((int) resourceId);
         }
-
         String str = "resourceId:0x" + Long.toHexString(resourceId);
         if (resourceTable == null) {
             return str;
@@ -220,11 +239,13 @@ public class ParseUtils {
         short packageId = (short) (resourceId >> 24 & 0xff);
         short typeId = (short) ((resourceId >> 16) & 0xff);
         int entryIndex = (int) (resourceId & 0xffff);
+
         ResourcePackage resourcePackage = resourceTable.getPackage(packageId);
         if (resourcePackage == null) {
             return str;
         }
         TypeSpec typeSpec = resourcePackage.getTypeSpec(typeId);
+
         List<Type> types = resourcePackage.getTypes(typeId);
         if (typeSpec == null || types == null) {
             return str;
@@ -239,6 +260,7 @@ public class ParseUtils {
         int currentLevel = -1;
         for (Type type : types) {
             ResourceEntry curResourceEntry = type.getResourceEntry(entryIndex);
+
             if (curResourceEntry == null) {
                 continue;
             }
@@ -267,10 +289,67 @@ public class ParseUtils {
             }
         }
         String result;
+
         if (locale == null || resource == null) {
             result = "@" + typeSpec.getName() + "/" + ref;
         } else {
-            result = resource.toStringValue(resourceTable, locale);
+            result = resource.toStringValue();
+        }
+        return result;
+    }
+
+    public static String getResourceNameById(long resourceId, ResourceTable resourceTable) {
+//        An Android Resource id is a 32-bit integer. It comprises
+//        an 8-bit Package id [bits 24-31]
+//        an 8-bit Type id [bits 16-23]
+//        a 16-bit Entry index [bits 0-15]
+
+        // android system styles.
+        if (resourceId > AndroidConstants.SYS_STYLE_ID_START && resourceId < AndroidConstants.SYS_STYLE_ID_END) {
+            return "@android:style/" + ResourceTable.sysStyle.get((int) resourceId);
+        }
+        String str = "resourceId:0x" + Long.toHexString(resourceId);
+        if (resourceTable == null) {
+            return str;
+        }
+
+        short packageId = (short) (resourceId >> 24 & 0xff);
+        short typeId = (short) ((resourceId >> 16) & 0xff);
+        int entryIndex = (int) (resourceId & 0xffff);
+
+        ResourcePackage resourcePackage = resourceTable.getPackage(packageId);
+        if (resourcePackage == null) {
+            return str;
+        }
+        TypeSpec typeSpec = resourcePackage.getTypeSpec(typeId);
+
+        List<Type> types = resourcePackage.getTypes(typeId);
+        if (typeSpec == null || types == null) {
+            return str;
+        }
+        if (!typeSpec.exists(entryIndex)) {
+            return str;
+        }
+
+        // read from type resource
+        ResourceEntry resource = null;
+        String ref = null;
+        for (Type type : types) {
+            ResourceEntry curResourceEntry = type.getResourceEntry(entryIndex);
+
+            if (curResourceEntry == null) {
+                continue;
+            }
+            ref = curResourceEntry.getKey();
+            return ref;
+
+        }
+        String result;
+
+        if (resource == null) {
+            result = "@" + typeSpec.getName() + "/" + ref;
+        } else {
+            result = resource.toStringValue();
         }
         return result;
     }

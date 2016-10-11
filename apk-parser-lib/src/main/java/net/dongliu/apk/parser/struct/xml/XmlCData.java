@@ -25,13 +25,13 @@ public class XmlCData {
     /**
      * get value as string
      *
-     * @return
+     * @return value
      */
-    public String toStringValue(ResourceTable resourceTable, Locale locale) {
+    public String toStringValue() {
         if (data != null) {
             return CDATA_START + data + CDATA_END;
         } else {
-            return CDATA_START + typedData.toStringValue(resourceTable, locale) + CDATA_END;
+            return CDATA_START + typedData.toStringValue() + CDATA_END;
         }
     }
 

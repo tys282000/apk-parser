@@ -11,7 +11,6 @@ public class ResourceTableMap {
     private long nameRef;
 
     private ResourceValue resValue;
-    private String data;
 
     public long getNameRef() {
         return nameRef;
@@ -29,18 +28,6 @@ public class ResourceTableMap {
         this.resValue = resValue;
     }
 
-    public String getData() {
-        return data;
-    }
-
-    public void setData(String data) {
-        this.data = data;
-    }
-
-    @Override
-    public String toString() {
-        return data;
-    }
 
     public static class MapAttr {
         public static final int TYPE = 0x01000000 | (0 & 0xFFFF);

@@ -28,8 +28,15 @@ public class TypeHeader extends ChunkHeader {
     // Configuration this collection of entries is designed for.
     private ResTableConfig config;
 
-    public TypeHeader(int chunkType, int headerSize, long chunkSize) {
+    private long startPoint;
+
+    public TypeHeader(int chunkType, int headerSize, long chunkSize, long startPoint) {
         super(chunkType, headerSize, chunkSize);
+        this.startPoint = startPoint;
+    }
+
+    public long getStartPoint() {
+        return startPoint;
     }
 
     public short getId() {

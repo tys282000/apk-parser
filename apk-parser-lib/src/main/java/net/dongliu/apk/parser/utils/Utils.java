@@ -29,6 +29,9 @@ public class Utils {
      * Copied fom commons StringUtils
      * <p>Joins the elements of the provided {@code Iterable} into
      * a single String containing the provided elements.</p>
+     * @param iterable
+     * @param separator
+     * @return value
      */
     public static String join(final Iterable<?> iterable, final String separator) {
         if (iterable == null) {
@@ -39,6 +42,9 @@ public class Utils {
 
     /**
      * Copied fom commons StringUtils
+     * @param iterator
+     * @param separator
+     * @return value
      */
     public static String join(final Iterator<?> iterator, final String separator) {
 

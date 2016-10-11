@@ -4,6 +4,7 @@ import net.dongliu.apk.parser.struct.StringPool;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -27,11 +28,23 @@ public class ResourcePackage {
     }
 
     private Map<Short, TypeSpec> typeSpecMap = new HashMap<>();
+    private Map<String, TypeSpec> typeSpecNameMap = new HashMap<>();
+
 
     private Map<Short, List<Type>> typesMap = new HashMap<>();
+    private Map<String, List<Type>> typesNameMap = new HashMap<>();
 
     public void addTypeSpec(TypeSpec typeSpec) {
         this.typeSpecMap.put(typeSpec.getId(), typeSpec);
+        this.typeSpecNameMap.put(typeSpec.getName(), typeSpec);
+    }
+
+    public Map<String, TypeSpec> getTypeSpecNameMap() {
+        return this.typeSpecNameMap;
+    }
+
+    public Map<String, List<Type>> getTypesNameMap() {
+        return this.typesNameMap;
     }
 
     public TypeSpec getTypeSpec(Short id) {
@@ -40,9 +53,11 @@ public class ResourcePackage {
 
     public void addType(Type type) {
         List<Type> types = this.typesMap.get(type.getId());
+
         if (types == null) {
             types = new ArrayList<>();
             this.typesMap.put(type.getId(), types);
+            this.typesNameMap.put(type.getName(), types);
         }
         types.add(type);
     }
@@ -97,5 +112,73 @@ public class ResourcePackage {
 
     public void setTypesMap(Map<Short, List<Type>> typesMap) {
         this.typesMap = typesMap;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (object instanceof ResourcePackage) {
+            ResourcePackage oldResourcePackage = (ResourcePackage) object;
+            if (!name.equals(oldResourcePackage.getName())) {
+                return false;
+            }
+            if (!typeStringPool.equals(oldResourcePackage.getTypeStringPool())) {
+                return false;
+            }
+            if (!keyStringPool.equals(oldResourcePackage.getKeyStringPool())) {
+                return false;
+            }
+            Map<String, TypeSpec> oldTypeSpecNameMap = oldResourcePackage.getTypeSpecNameMap();
+
+            if (typeSpecNameMap.size() != oldTypeSpecNameMap.size()) {
+                return false;
+            }
+            for (String typeName : typeSpecNameMap.keySet()) {
+                if (!oldTypeSpecNameMap.containsKey(typeName)) {
+                    return false;
+                }
+                if (!typeSpecNameMap.get(typeName).equals(oldTypeSpecNameMap.get(typeName))) {
+                    return false;
+                }
+            }
+            Map<String, List<Type>> oldTypesNameMap = oldResourcePackage.getTypesNameMap();
+            if (typesNameMap.size() != oldTypesNameMap.size()) {
+                return false;
+            }
+            for (String typeName : typesNameMap.keySet()) {
+                if (!oldTypesNameMap.containsKey(typeName)) {
+                    return false;
+                }
+                List<Type> oldTypeList = oldTypesNameMap.get(typeName);
+                List<Type> newTypeList = typesNameMap.get(typeName);
+                if (oldTypeList.size() != newTypeList.size()) {
+                    return false;
+                }
+                HashSet<Type> foundTypes = new HashSet<>();
+                for (Type type : oldTypeList) {
+                    boolean found = false;
+                    for (Type newType : newTypeList) {
+                        if (foundTypes.contains(newType)) {
+                            continue;
+                        }
+                        if (type.equals(newType)) {
+                            foundTypes.add(newType);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+//                        System.out.println("type not found:" + type.getName());
+                        //type not found
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+        return false;
     }
 }

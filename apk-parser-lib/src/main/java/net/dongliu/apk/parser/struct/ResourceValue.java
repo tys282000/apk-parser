@@ -13,15 +13,34 @@ import java.util.Locale;
  */
 public abstract class ResourceValue {
     protected final int value;
+    protected int   size;
+    protected short dataType;
 
     protected ResourceValue(int value) {
         this.value = value;
     }
 
+    public int getSize() {
+        return size;
+    }
+
+    public short getDataType() {
+        return dataType;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    public void setDataType(short dataType) {
+        this.dataType = dataType;
+    }
+
     /**
      * get value as string
+     * @return value
      */
-    public abstract String toStringValue(ResourceTable resourceTable, Locale locale);
+    public abstract String toStringValue();
 
     public static ResourceValue decimal(int value) {
         return new DecimalResourceValue(value);
@@ -43,8 +62,8 @@ public abstract class ResourceValue {
         return new StringResourceValue(value, stringPool);
     }
 
-    public static ResourceValue reference(int value) {
-        return new ReferenceResourceValue(value);
+    public static ResourceValue reference(int value, ResourceTable resourceTable, Locale locale) {
+        return new ReferenceResourceValue(value, resourceTable, locale);
     }
 
     public static ResourceValue nullValue() {
@@ -75,7 +94,7 @@ public abstract class ResourceValue {
         }
 
         @Override
-        public String toStringValue(ResourceTable resourceTable, Locale locale) {
+        public String toStringValue() {
             return String.valueOf(value);
         }
     }
@@ -89,7 +108,7 @@ public abstract class ResourceValue {
         }
 
         @Override
-        public String toStringValue(ResourceTable resourceTable, Locale locale) {
+        public String toStringValue() {
             return String.valueOf(mValue);
         }
     }
@@ -101,7 +120,7 @@ public abstract class ResourceValue {
         }
 
         @Override
-        public String toStringValue(ResourceTable resourceTable, Locale locale) {
+        public String toStringValue() {
             return "0x" + Integer.toHexString(value);
         }
     }
@@ -113,7 +132,7 @@ public abstract class ResourceValue {
         }
 
         @Override
-        public String toStringValue(ResourceTable resourceTable, Locale locale) {
+        public String toStringValue() {
             return String.valueOf(value != 1);
         }
     }
@@ -127,7 +146,7 @@ public abstract class ResourceValue {
         }
 
         @Override
-        public String toStringValue(ResourceTable resourceTable, Locale locale) {
+        public String toStringValue() {
             if (value >= 0) {
                 return stringPool.get(value);
             } else {
@@ -138,13 +157,17 @@ public abstract class ResourceValue {
 
     // make public for cyclic reference detect
     public static class ReferenceResourceValue extends ResourceValue {
+        private final ResourceTable resourceTable;
+        private final Locale        locale;
 
-        private ReferenceResourceValue(int value) {
+        private ReferenceResourceValue(int value, ResourceTable resourceTable, Locale locale) {
             super(value);
+            this.resourceTable = resourceTable;
+            this.locale = locale;
         }
 
         @Override
-        public String toStringValue(ResourceTable resourceTable, Locale locale) {
+        public String toStringValue() {
             long resourceId = getReferenceResourceId();
             return ParseUtils.getResourceById(resourceId, resourceTable, locale);
         }
@@ -162,7 +185,7 @@ public abstract class ResourceValue {
         }
 
         @Override
-        public String toStringValue(ResourceTable resourceTable, Locale locale) {
+        public String toStringValue() {
             return "";
         }
     }
@@ -176,7 +199,7 @@ public abstract class ResourceValue {
         }
 
         @Override
-        public String toStringValue(ResourceTable resourceTable, Locale locale) {
+        public String toStringValue() {
             StringBuilder sb = new StringBuilder();
             for (int i = len / 2 - 1; i >= 0; i--) {
                 sb.append(Integer.toHexString((value >> i * 8) & 0xff));
@@ -192,7 +215,7 @@ public abstract class ResourceValue {
         }
 
         @Override
-        public String toStringValue(ResourceTable resourceTable, Locale locale) {
+        public String toStringValue() {
             short unit = (short) (value & 0xff);
             String unitStr;
             switch (unit) {
@@ -228,7 +251,7 @@ public abstract class ResourceValue {
         }
 
         @Override
-        public String toStringValue(ResourceTable resourceTable, Locale locale) {
+        public String toStringValue() {
             // The low-order 4 bits of the data value specify the type of the fraction
             short type = (short) (value & 0xf);
             String pstr;
@@ -256,7 +279,7 @@ public abstract class ResourceValue {
         }
 
         @Override
-        public String toStringValue(ResourceTable resourceTable, Locale locale) {
+        public String toStringValue() {
             return "{" + dataType + ":" + (value & 0xFFFFFFFFL) + "}";
         }
     }

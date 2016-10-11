@@ -38,6 +38,7 @@ public abstract class AbstractApkParser implements Closeable {
      * return decoded AndroidManifest.xml
      *
      * @return decoded AndroidManifest.xml
+     * @throws IOException
      */
     public String getManifestXml() throws IOException {
         if (this.manifestXml == null) {
@@ -50,6 +51,7 @@ public abstract class AbstractApkParser implements Closeable {
      * return decoded AndroidManifest.xml
      *
      * @return decoded AndroidManifest.xml
+     * @throws IOException
      */
     public ApkMeta getApkMeta() throws IOException {
         if (this.apkMeta == null) {
@@ -73,6 +75,9 @@ public abstract class AbstractApkParser implements Closeable {
 
     /**
      * get the apk's certificates.
+     * @return
+     * @throws IOException
+     * @throws CertificateException
      */
     public List<CertificateMeta> getCertificateMetaList() throws IOException,
             CertificateException {
@@ -127,6 +132,9 @@ public abstract class AbstractApkParser implements Closeable {
 
     /**
      * read file in apk into bytes
+     * @param path
+     * @return
+     * @throws IOException
      */
     public abstract byte[] getFileData(String path) throws IOException;
 
@@ -203,7 +211,7 @@ public abstract class AbstractApkParser implements Closeable {
     /**
      * parse resource table.
      */
-    private void parseResourceTable() throws IOException {
+    public void parseResourceTable() throws IOException {
         byte[] data = getFileData(AndroidConstants.RESOURCE_FILE);
         if (data == null) {
             // if no resource entry has been found, we assume it is not needed by this APK
@@ -222,6 +230,9 @@ public abstract class AbstractApkParser implements Closeable {
         this.locales = resourceTableParser.getLocales();
     }
 
+    public ResourceTable getResourceTable() {
+        return this.resourceTable;
+    }
     /**
      * check apk sign
      *

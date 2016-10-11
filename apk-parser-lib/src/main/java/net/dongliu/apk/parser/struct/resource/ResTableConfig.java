@@ -6,8 +6,9 @@ package net.dongliu.apk.parser.struct.resource;
  * @author dongliu
  */
 public class ResTableConfig {
+    private byte[] array;
     // Number of bytes in this structure. uint32_t
-    private long size;
+    private int size;
 
     // Mobile country code (from SIM).  0 means "any". uint16_t
     private short mcc;
@@ -30,13 +31,13 @@ public class ResTableConfig {
     // uint32_t screenType;
 
     // uint8_t
-    private short keyboard;
+    private byte keyboard;
     // uint8_t
-    private short navigation;
+    private byte navigation;
     // uint8_t
-    private short inputFlags;
+    private byte inputFlags;
     // uint8_t
-    private short inputPad0;
+    private byte inputPad0;
     // uint32_t input;
 
     // uint16_t
@@ -53,9 +54,9 @@ public class ResTableConfig {
     //uint32_t version;
 
     // uint8_t
-    private short screenLayout;
+    private byte screenLayout;
     // uint8_t
-    private short uiMode;
+    private byte uiMode;
     // uint8_t
     private short screenConfigPad1;
     // uint8_t
@@ -63,11 +64,11 @@ public class ResTableConfig {
     //uint32_t screenConfig;
 
 
-    public long getSize() {
+    public int getSize() {
         return size;
     }
 
-    public void setSize(long size) {
+    public void setSize(int size) {
         this.size = size;
     }
 
@@ -131,7 +132,7 @@ public class ResTableConfig {
         return keyboard;
     }
 
-    public void setKeyboard(short keyboard) {
+    public void setKeyboard(byte keyboard) {
         this.keyboard = keyboard;
     }
 
@@ -139,7 +140,7 @@ public class ResTableConfig {
         return navigation;
     }
 
-    public void setNavigation(short navigation) {
+    public void setNavigation(byte navigation) {
         this.navigation = navigation;
     }
 
@@ -147,7 +148,7 @@ public class ResTableConfig {
         return inputFlags;
     }
 
-    public void setInputFlags(short inputFlags) {
+    public void setInputFlags(byte inputFlags) {
         this.inputFlags = inputFlags;
     }
 
@@ -155,7 +156,7 @@ public class ResTableConfig {
         return inputPad0;
     }
 
-    public void setInputPad0(short inputPad0) {
+    public void setInputPad0(byte inputPad0) {
         this.inputPad0 = inputPad0;
     }
 
@@ -195,7 +196,7 @@ public class ResTableConfig {
         return screenLayout;
     }
 
-    public void setScreenLayout(short screenLayout) {
+    public void setScreenLayout(byte screenLayout) {
         this.screenLayout = screenLayout;
     }
 
@@ -203,7 +204,7 @@ public class ResTableConfig {
         return uiMode;
     }
 
-    public void setUiMode(short uiMode) {
+    public void setUiMode(byte uiMode) {
         this.uiMode = uiMode;
     }
 
@@ -221,5 +222,36 @@ public class ResTableConfig {
 
     public void setScreenConfigPad2(short screenConfigPad2) {
         this.screenConfigPad2 = screenConfigPad2;
+    }
+
+    public byte[] getArray() {
+        return array;
+    }
+
+    public void setArray(byte[] array) {
+        this.array = array;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (object instanceof ResTableConfig) {
+            ResTableConfig oldResConfig = (ResTableConfig) object;
+            if (size != oldResConfig.getSize()) {
+                return false;
+            }
+            byte[] oldArray = oldResConfig.getArray();
+            for (int i = 0; i < size; i++) {
+                if (array[i] != oldArray[i]) {
+//                    System.out.println("i:"+ i + " config:" + array[i] + " old:" + oldArray[i]);
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        return false;
     }
 }
