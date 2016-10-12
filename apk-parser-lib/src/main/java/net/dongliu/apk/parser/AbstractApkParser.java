@@ -7,8 +7,10 @@ import net.dongliu.apk.parser.struct.AndroidConstants;
 import net.dongliu.apk.parser.struct.resource.ResourceTable;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.security.cert.CertificateException;
 import java.util.*;
 
@@ -213,6 +215,25 @@ public abstract class AbstractApkParser implements Closeable {
      */
     public void parseResourceTable() throws IOException {
         byte[] data = getFileData(AndroidConstants.RESOURCE_FILE);
+        if (data == null) {
+            // if no resource entry has been found, we assume it is not needed by this APK
+            this.resourceTable = new ResourceTable();
+            this.locales = Collections.emptySet();
+            return;
+        }
+
+        this.resourceTable = new ResourceTable();
+        this.locales = Collections.emptySet();
+
+        ByteBuffer buffer = ByteBuffer.wrap(data);
+        ResourceTableParser resourceTableParser = new ResourceTableParser(buffer);
+        resourceTableParser.parse();
+        this.resourceTable = resourceTableParser.getResourceTable();
+        this.locales = resourceTableParser.getLocales();
+    }
+
+    public void parseResourceTable(File arscFile) throws IOException {
+        byte[] data = Files.readAllBytes(arscFile.toPath());
         if (data == null) {
             // if no resource entry has been found, we assume it is not needed by this APK
             this.resourceTable = new ResourceTable();

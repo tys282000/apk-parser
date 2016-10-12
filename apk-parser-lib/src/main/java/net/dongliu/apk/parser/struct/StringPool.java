@@ -1,6 +1,7 @@
 package net.dongliu.apk.parser.struct;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 
 /**
@@ -10,6 +11,10 @@ import java.util.HashSet;
  */
 public class StringPool {
     private String[] pool;
+    private boolean  utf8;
+
+    private HashMap<Integer, Long> poolOffsets;
+
     public StringPool(int poolSize) {
         pool = new String[poolSize];
     }
@@ -26,6 +31,13 @@ public class StringPool {
         return this.pool;
     }
 
+    public HashMap<Integer, Long> getPoolOffsets() {
+        return poolOffsets;
+    }
+
+    public void setPoolOffsets(HashMap<Integer, Long> poolOffsets) {
+        this.poolOffsets = poolOffsets;
+    }
     @Override
     public boolean equals(Object object) {
         if (this == object) {
@@ -48,5 +60,13 @@ public class StringPool {
             return true;
         }
         return false;
+    }
+
+    public void setUtf8(boolean utf8) {
+        this.utf8 = utf8;
+    }
+
+    public boolean isUtf8() {
+        return utf8;
     }
 }

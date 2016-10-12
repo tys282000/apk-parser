@@ -28,9 +28,11 @@ import java.util.zip.ZipFile;
  */
 public class ApkParser extends AbstractApkParser implements Closeable {
 
-    private final ZipFile zf;
+    private ZipFile zf;
     private File apkFile;
+    public ApkParser() {
 
+    }
     public ApkParser(File apkFile) throws IOException {
         this.apkFile = apkFile;
         // create zip file cost time, use one zip file for apk parser life cycle

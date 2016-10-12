@@ -90,6 +90,7 @@ public class ResourceTableParser {
             resourceTable.addPackage(pair.getLeft());
             packageHeader = pair.getRight();
         }
+        resourceTable.setBuffers(buffer);
     }
 
     // read one package

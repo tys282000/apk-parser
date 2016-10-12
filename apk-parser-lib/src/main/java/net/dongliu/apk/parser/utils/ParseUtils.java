@@ -9,6 +9,7 @@ import net.dongliu.apk.parser.struct.resource.*;
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -17,7 +18,8 @@ import java.util.Locale;
  */
 public class ParseUtils {
 
-    public static Charset charsetUTF8 = Charset.forName("UTF-8");
+    public static Charset charsetUTF8  = Charset.forName("UTF-8");
+    public static Charset charsetUTF16 = Charset.forName("UTF-16LE");
 
     /**
      * read string from input buffer. if get EOF before read enough data, throw IOException.
@@ -121,8 +123,10 @@ public class ParseUtils {
 
         String lastStr = null;
         long lastOffset = -1;
+        HashMap<Integer, Long> stringOffsets = new HashMap<>();
         StringPool stringPool = new StringPool((int) stringPoolHeader.getStringCount());
         for (StringPoolEntry entry : entries) {
+            stringOffsets.put(entry.getIdx(), entry.getOffset());
             if (entry.getOffset() == lastOffset) {
                 stringPool.set(entry.getIdx(), lastStr);
                 continue;
@@ -139,7 +143,8 @@ public class ParseUtils {
         if (stringPoolHeader.getStyleCount() > 0) {
             // now we just skip it
         }
-
+        stringPool.setUtf8(utf8);
+        stringPool.setPoolOffsets(stringOffsets);
         buffer.position((int) (beginPos + stringPoolHeader.getBodySize()));
 
         return stringPool;

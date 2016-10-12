@@ -1,6 +1,7 @@
 package com.apk.parser.cli;
 
 import net.dongliu.apk.parser.ApkParser;
+import net.dongliu.apk.parser.struct.resource.ResourceTable;
 
 import java.io.File;
 
@@ -10,18 +11,14 @@ import java.io.File;
  * @author Liu Dong {@literal <im@dongliu.net>}
  */
 public class Main {
+
     public static void main(String[] args) throws Exception{
-        String oldApkFile = args[0];
-        String newApkFile = args[1];
+        String apkFile = args[0];
 
-        System.out.println("old apkFile:"+oldApkFile);
-        System.out.println("new apkFile:"+newApkFile);
-
-        ApkParser parser = new ApkParser(new File(oldApkFile));
-        ApkParser newParser = new ApkParser(new File(newApkFile));
-        parser.parseResourceTable();
-        newParser.parseResourceTable();
-
-        System.out.println("resource table is equal: " + (parser.getResourceTable().equals(newParser.getResourceTable())));
+        System.out.println("apkFile:" + apkFile);
+        ApkParser parser = new ApkParser();
+        parser.parseResourceTable(new File(apkFile));
+        ResourceTable resourceTable = parser.getResourceTable();
     }
+
 }
