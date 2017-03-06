@@ -74,15 +74,7 @@ public class Type {
         resourceEntry.setKey(key);
 
         ResourceEntry resultEntry;
-        if ((resourceEntry.getFlags() & ResourceEntry.FLAG_PUBLIC) != 0) {
-            System.out.println("key:" + key + " is public");
-            System.out.println("flag:" + resourceEntry.getFlags() + " is public");
 
-        } else {
-            System.out.println("key:" + key + " is not public");
-            System.out.println("flag:" + resourceEntry.getFlags() + " is not public");
-
-        }
         if ((resourceEntry.getFlags() & ResourceEntry.FLAG_COMPLEX) != 0) {
             ResourceMapEntry resourceMapEntry = new ResourceMapEntry(resourceEntry);
 
