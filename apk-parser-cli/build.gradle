@@ -13,7 +13,7 @@ dependencies {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'com.apk.parser.cli.Main'
+        attributes 'Main-Class': 'tinker.apk.parser.cli.Main'
         attributes 'Manifest-Version': version
     }
     from {

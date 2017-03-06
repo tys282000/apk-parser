@@ -21,8 +21,8 @@ allprojects {
 ext {
     javaVersion = JavaVersion.VERSION_1_7
 
-    GROUP = 'shwenzhang'
-    VERSION_NAME = "1.0.0"
+    GROUP = 'com.tencent.mm'
+    VERSION_NAME = "1.1.0"
 
     POM_PACKAGING = "pom"
     POM_DESCRIPTION= "apk-parser-lib"
@@ -38,7 +38,6 @@ ext {
     POM_DEVELOPER_ID="Tencent Wechat"
     POM_DEVELOPER_NAME="Tencent Wechat, Inc."
 
-    BINTRAY_LICENCE= ['BSD 2-Clause']
-    BINTRAY_ORGANIZATION = "apk-parser"
-
+    BINTRAY_LICENCE= ['BSD 3-Clause']
+    BINTRAY_ORGANIZATION = "wemobiledev"
 }
