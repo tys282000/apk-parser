@@ -183,7 +183,7 @@ public class ResourceEntry {
             if ((value1.getDataType() == ResValue.ResType.STRING
                 && value2.getDataType() == ResValue.ResType.INT_BOOLEAN)
                 || (value1.getDataType() == ResValue.ResType.INT_BOOLEAN
-                && value1.getDataType() == ResValue.ResType.STRING)) {
+                && value2.getDataType() == ResValue.ResType.STRING)) {
                 return true;
             }
         }
